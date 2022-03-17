@@ -13,7 +13,7 @@ import SunCalc from "suncalc";
 import MapContext from "./MapContext";
 
 mapboxgl.accessToken =
-  "pk.eyJ1IjoiYmVuaG9uZyIsImEiOiJja3p0bWo5cGU3ZTJ4MzF0dm5tY2ZiNTVlIn0.Fb53Ddqcswv5xDLed-qGWA";
+  "pk.eyJ1IjoiYmVuaG9uZyIsImEiOiJjbDB1dXU2YjkxMTFqM2pxbzk4azl6bnJjIn0.FB3GqcVZYnZqzs549LsjPg";
 
 export default function MapApp(props) {
   const mapContainerRef = useRef(null);

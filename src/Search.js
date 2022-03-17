@@ -22,7 +22,7 @@ import { ArrowBack } from "@mui/icons-material";
 import MapContext from "./MapContext";
 
 const MAPBOX_TOKEN =
-  "pk.eyJ1IjoiYmVuaG9uZyIsImEiOiJja3p2Mmt6c2IwOHhkMnZwOWluN3l4amF0In0.B2hVpXHvnuZkzGzo3VeW7w";
+  "pk.eyJ1IjoiYmVuaG9uZyIsImEiOiJjbDB1dXU2YjkxMTFqM2pxbzk4azl6bnJjIn0.FB3GqcVZYnZqzs549LsjPg";
 
 // MapBox Search
 export default function SearchBar() {
