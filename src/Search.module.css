@@ -1,0 +1,14 @@
+/* .list {
+  background-color: #eee;
+  transform: scaleY(0);    
+  transform-origin: top;
+  transition: transform 0.26s ease;
+}
+
+.box:hover ~ .list {
+  transform: scaleY(1);
+} */
+
+/* .box {
+    transition: height 0.26s ease;
+} */
