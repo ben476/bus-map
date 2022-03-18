@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import StopsContext from '../../StopsContext';
+import MapContext from '../../MapContext';
 import React from 'react';
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -16,6 +17,7 @@ import useAPI from '../../useAPI';
 
 export default function Stop(props) {
     const [stops] = React.useContext(StopsContext);
+    const [map] = React.useContext(MapContext);
     const [time, setTime] = React.useState(new Date())
     const navigate = useNavigate();
     const { id, departures, routes } = props;
@@ -25,6 +27,12 @@ export default function Stop(props) {
     console.log("Stop Details", stop);
 
     React.useEffect(() => {
+        map?.flyTo({
+            center: [stop.stop_lon, stop.stop_lat],
+            zoom: 18,
+            speed: 1.4,
+            curve: 1,
+        });
         const interval = setInterval(() => {
             setTime(new Date())
         }, 1000)

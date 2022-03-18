@@ -5,27 +5,34 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from '@mui/material/Typography';
 import parse from 'parse-duration';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import BusContext from '../../BusContext';
-import MapContext from '../../MapContext';
-import StopsContext from '../../StopsContext';
+import { useNavigate, useParams } from 'react-router-dom';
+import BusContext from '../BusContext';
+import MapContext from '../MapContext';
+import StopsContext from '../StopsContext';
+import RoutesContext from '../RoutesContext';
+import callAPI from '../callAPI';
 
 export default function Service(props) {
     const [stops] = React.useContext(StopsContext);
-    const [map] = React.useContext(MapContext);
+    const [map, , mapLoaded] = React.useContext(MapContext);
+    const routes = React.useContext(RoutesContext);
     const [time, setTime] = React.useState(new Date())
     const [geoJSON, setGeoJSON] = React.useState(null)
-    const [buses, , setBusFilter] = React.useContext(BusContext)
+    const [schedule, setSchedule] = React.useState([])
+    const [buses, , setBusFilter, setActiveBus] = React.useContext(BusContext)
     const busMarkersRef = React.useRef([])
+    const navigate = useNavigate();
 
     // const [busGeoJSON, setBusGeoJSON] = React.useState(null)
-    const { id: stopId, departures: allDepartures, routes } = props;
-    const { routeId } = useParams();
 
-    const stop = stops[stopId]
-    const route = routes.find(r => r.route_short_name === routeId)
-    const departures = allDepartures.filter(d => d.service_id === routeId)
+    const { busId } = useParams();
+
+    const bus = buses.find(b => b.vehicle.id === busId);
+    const route = routes[bus?.trip?.route_id]
+
+    console.log("Bus details", busId, bus, route)
 
     // console.log("Service Details", stop);
 
@@ -38,28 +45,43 @@ export default function Service(props) {
     }, [])
 
     React.useEffect(() => {
-        setBusFilter(() => (a) => (a?.trip?.route_id == route.route_id))
+        setActiveBus(busId)
+        return () => setActiveBus(null)
+    }, [busId])
 
-        return () => setBusFilter(() => a => true)
-    }, [routeId])
+    // React.useEffect(() => {
+    //     setBusFilter(() => (a) => (a?.vehicle?.id == busId))
 
-    React.useEffect(() => {
-        (async () => {
-            const req = await fetch("https://backend.metlink.org.nz/api/v1/routemap", {
-                "body": JSON.stringify({ service: "" + route.route_short_name }),
-                "method": "POST",
-                "mode": "cors",
-                "credentials": "omit"
-            })
-
-            const data = await req.json()
-
-            setGeoJSON(data.geojson)
-        })()
-    }, [])
+    //     return () => setBusFilter(null)
+    // }, [busId])
 
     React.useEffect(() => {
-        if (geoJSON && map) {
+        if (route) {
+            (async () => {
+                const req = await fetch("https://backend.metlink.org.nz/api/v1/routemap", {
+                    "body": JSON.stringify({ service: "" + route.route_short_name }),
+                    "method": "POST",
+                    "mode": "cors",
+                    "credentials": "omit"
+                })
+
+                const data = await req.json()
+
+                setGeoJSON(data.geojson)
+            })()
+        }
+    }, [route])
+
+    React.useEffect(() => {
+        if (bus) {
+            (async () => {
+                setSchedule(await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/stop_times?trip_id=" + bus.trip.trip_id))
+            })()
+        }
+    }, [bus])
+
+    React.useEffect(() => {
+        if (geoJSON && map && route && mapLoaded) {
             map.addSource('route#' + route.route_short_name, {
                 'type': 'geojson',
                 'data': geoJSON
@@ -84,10 +106,36 @@ export default function Service(props) {
                 map.removeSource('route#' + route.route_short_name)
             }
         }
-    }, [geoJSON, map])
+    }, [geoJSON, map, , mapLoaded])
 
-    if (!stop || !route) {
-        return null
+    if (!bus || !route) {
+        if (buses.length === 0) {
+            return null
+        } else {
+            return (
+                <Fade in>
+                    <Box sx={{
+                        paddingInline: 0,
+                        paddingTop: 6,
+                        marginTop: 6,
+                    }}>
+                        <Box sx={{ display: "flex", paddingInline: 4 }}>
+                            <DirectionsBusIcon sx={{ fontSize: '100px' }} />
+                            <Box sx={{ flexGrow: 1, marginLeft: 2 }}>
+                                <Typography variant="h5" sx={{
+                                    fontWeight: "bold"
+                                }}>
+                                    Bus not in service
+                                </Typography>
+                                <Typography variant="body1" sx={{ marginTop: 1 }}>
+                                    {"Bus ID: " + busId}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Fade>
+            )
+        }
     }
 
     function msToString(ms) {
@@ -119,49 +167,59 @@ export default function Service(props) {
                 marginTop: 6,
             }}>
                 <Box sx={{ display: "flex", paddingInline: 4 }}>
-                    <Avatar sx={{ bgcolor: "#" + route.route_color, flexGrow: 0, width: '100px', height: '100px', fontSize: '50px' }}>{route.route_short_name}</Avatar>
+                    <DirectionsBusIcon sx={{ fontSize: '100px' }} />
                     <Box sx={{ flexGrow: 1, marginLeft: 2 }}>
                         <Typography variant="h5" sx={{
                             fontWeight: "bold"
                         }}>
-                            {departures[0]?.direction === "outbound" ? route.route_desc : route.route_long_name}
+                            Bus on route {route.route_short_name}
                         </Typography>
                         <Typography variant="body1" sx={{ marginTop: 1 }}>
                             {
-                                "ID: " + route.route_short_name + " "
+                                bus?.direction === "outbound" ? route.route_desc : route.route_long_name
                             }
+                            <br />
+                            {"Bus ID: " + busId}
                         </Typography>
                     </Box>
                 </Box>
                 <Typography variant="h6" sx={{ marginTop: 2, paddingInline: 4 }}>
-                    Services:
+                    Scheduled stops:
                 </Typography>
                 <List>
-                    {(departures || []).map((service) => {
-                        if (new Date(service.arrival.expected || service.arrival.aimed) < time) return null;
+                    {schedule.map((service) => {
+                        // if (new Date(service.departure_time) < time) return null;
 
-                        const state = service.delay.charAt(0) === "-" ? "late" : "early"
+                        // const state = service.delay.charAt(0) === "-" ? "late" : "early"
 
-                        const durationString = service.delay.substring(3).replace("PT", "").toLowerCase()
+                        // const durationString = service.delay.substring(3).replace("PT", "").toLowerCase()
 
                         // console.log(durationString, parse(durationString), parse)
 
-                        return (new Date(service.arrival.expected || service.arrival.aimed) > time) && (
+                        // return (new Date(service.arrival.expected || service.arrival.aimed) > time) && (
+                        const stop = stops[service.stop_id]
+
+                        const date = new Date()
+
+                        const timeString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+
+                        // console.log(service.departure_time, timeString, service.departure_time > timeString)
+
+                        if (service.departure_time < timeString || !stop) {
+                            return null
+                        }
+
+                        return (
                             <ListItem
-                                button={!!buses.find(a => a.trip.trip_id === service.trip_id)}
+                                button
                                 onClick={() => {
-                                    if (buses.find(a => a.trip.trip_id === service.trip_id)) {
-                                        map.flyTo({
-                                            center: [buses.find(a => a.trip.trip_id === service.trip_id).position.longitude, buses.find(a => a.trip.trip_id === service.trip_id).position.latitude],
-                                            zoom: 16
-                                        })
-                                    }
+                                    navigate(`/stop/${service.stop_id}`)
                                 }}
                                 sx={{ paddingInline: 4 }}
                             >
                                 <ListItemText
-                                    primary={msToString(new Date(service.arrival.expected || service.arrival.aimed) - time) + " away"}
-                                    secondary={!!buses.find(a => a.trip.trip_id === service.trip_id) && (msToString(parse(durationString)) + " " + state)}
+                                    primary={stop.stop_name}
+                                    secondary={"Scheduled at " + service.departure_time}
                                 />
                             </ListItem>
                         )

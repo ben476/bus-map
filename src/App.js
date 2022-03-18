@@ -11,7 +11,9 @@ import Routes from "./Routes";
 import StopsContext from "./StopsContext";
 import MapContext from "./MapContext";
 import BusContext from "./BusContext";
+import RoutesContext from "./RoutesContext";
 import callAPI from "./callAPI";
+import useAPI from "./useAPI";
 
 const Map = React.lazy(() => import("./Map"));
 
@@ -30,10 +32,19 @@ export default function App() {
   const [stops, setStops] = React.useState({});
   const [map, setMap] = React.useState(null);
   const [buses, setBuses] = React.useState([])
+  const routesList = useAPI("https://api.opendata.metlink.org.nz/v1/gtfs/routes");
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [busFilter, setBusFilter] = React.useState(null)
   const [busIconLoaded, setBusIconLoaded] = React.useState(false)
+  const [busesLoaded, setBusesLoaded] = React.useState(false)
+  const [activeBus, setActiveBus] = React.useState(null)
+  const [lastActiveBus, setLastActiveBus] = React.useState(null)
+  const routes = {}
   const navigate = useNavigate();
+
+  for (const route of (routesList || [])) {
+    routes[route.route_id] = route
+  }
 
   React.useEffect(() => {
     (async () => {
@@ -166,12 +177,12 @@ export default function App() {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
       }
 
-      map?.flyTo({
-        center: [e.lngLat.lng, e.lngLat.lat],
-        zoom: 18,
-        speed: 1.4,
-        curve: 1,
-      });
+      // map?.flyTo({
+      //   center: [e.lngLat.lng, e.lngLat.lat],
+      //   zoom: 18,
+      //   speed: 1.4,
+      //   curve: 1,
+      // });
       navigate(`/stop/${e.features[0].properties.id}`);
 
       // new mapboxgl.Popup()
@@ -297,6 +308,16 @@ export default function App() {
             bearing,
           } = bus.position;
 
+          if (bus.vehicle.id === activeBus) {
+            map?.flyTo({
+              center: [longitude, latitude],
+              zoom: 17,
+              speed: lastActiveBus === activeBus ? 0.05 : 1.4,
+              curve: 1,
+            });
+            setLastActiveBus(bus.vehicle.id);
+          }
+
           return {
             type: "Feature",
             geometry: {
@@ -305,6 +326,7 @@ export default function App() {
             },
             properties: {
               bearing: bearing + 315,
+              id: bus.vehicle.id
             },
           };
         }),
@@ -326,7 +348,7 @@ export default function App() {
               "icon-allow-overlap": true,
               'icon-rotate': ['get', 'bearing'],
               // set size to 10px
-              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.8],
+              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.6],
             },
           }, 'clusters');
         } catch (e) {
@@ -339,10 +361,12 @@ export default function App() {
               "icon-allow-overlap": true,
               'icon-rotate': ['get', 'bearing'],
               // set size to 10px
-              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.8],
+              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.6],
             },
           });
         }
+
+        setBusesLoaded(true)
 
         return () => {
           map?.removeLayer("buses");
@@ -354,77 +378,112 @@ export default function App() {
     }
   }, [buses, busIconLoaded]);
 
+  React.useEffect(() => {
+    if (busesLoaded) {
+      map.on('click', 'buses', (e) => {
+        const coordinates = e.features[0].geometry.coordinates.slice();
+
+        // Ensure that if the map is zoomed out such that
+        // multiple copies of the feature are visible, the
+        // popup appears over the copy being pointed to.
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
+        map?.flyTo({
+          center: [e.lngLat.lng, e.lngLat.lat],
+          zoom: 17,
+          speed: 1.4,
+          curve: 1,
+        });
+
+        setLastActiveBus(e.features[0].properties.id);
+
+        navigate(`/bus/${e.features[0].properties.id}`);
+      });
+
+      map.on('mouseenter', 'buses', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'buses', () => {
+        map.getCanvas().style.cursor = '';
+      });
+    }
+  }, [busesLoaded])
+
   return (
     <ThemeProvider theme={theme}>
       <StopsContext.Provider value={[stops, setStops]}>
-        <MapContext.Provider value={[map, setMap]}>
-          <BusContext.Provider value={[buses, setBuses, setBusFilter]}>
-            <Box
-              sx={{
-                display: "flex",
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-              }}
-            >
-              <CssBaseline />
-              <Drawer
-                sx={{
-                  width: drawerWidth,
-                  flexShrink: 0,
-                  "& .MuiDrawer-paper": {
-                    width: drawerWidth,
-                    boxSizing: "border-box",
-                  },
-                }}
-                variant="permanent"
-                anchor="left"
-              >
-                <Search />
-
-                <Routes />
-              </Drawer>
-
+        <RoutesContext.Provider value={routes}>
+          <MapContext.Provider value={[map, setMap, mapLoaded]}>
+            <BusContext.Provider value={[buses, setBuses, setBusFilter, setActiveBus]}>
               <Box
-                component="main"
                 sx={{
-                  flexGrow: 1,
-                  bgcolor: "background.default",
-                  p: 3,
-                  position: "relative",
-                  height: "100%",
+                  display: "flex",
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
                 }}
               >
-                <React.Suspense
-                  fallback={
-                    // div with text in middle
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: "#78bced",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography variant="h5" style={{ color: "white" }}>
-                        Loading map...
-                      </Typography>
-                    </div>
-                  }
+                <CssBaseline />
+                <Drawer
+                  sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                    "& .MuiDrawer-paper": {
+                      width: drawerWidth,
+                      boxSizing: "border-box",
+                    },
+                  }}
+                  variant="permanent"
+                  anchor="left"
                 >
-                  <Map />
-                </React.Suspense>
+                  <Search />
+
+                  <Routes />
+                </Drawer>
+
+                <Box
+                  component="main"
+                  sx={{
+                    flexGrow: 1,
+                    bgcolor: "background.default",
+                    p: 3,
+                    position: "relative",
+                    height: "100%",
+                  }}
+                >
+                  <React.Suspense
+                    fallback={
+                      // div with text in middle
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "#78bced",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography variant="h5" style={{ color: "white" }}>
+                          Loading map...
+                        </Typography>
+                      </div>
+                    }
+                  >
+                    <Map />
+                  </React.Suspense>
+                </Box>
               </Box>
-            </Box>
-          </BusContext.Provider>
-        </MapContext.Provider>
+            </BusContext.Provider>
+          </MapContext.Provider>
+        </RoutesContext.Provider>
       </StopsContext.Provider>
     </ThemeProvider>
   );
