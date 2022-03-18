@@ -44,12 +44,6 @@ export default function Service(props) {
     }, [routeId])
 
     React.useEffect(() => {
-        map.setLayoutProperty("clusters", 'visibility', 'none');
-
-        return () => map.setLayoutProperty("clusters", 'visibility', 'visible');
-    })
-
-    React.useEffect(() => {
         (async () => {
             const req = await fetch("https://backend.metlink.org.nz/api/v1/routemap", {
                 "body": JSON.stringify({ service: "" + route.route_short_name }),

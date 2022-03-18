@@ -27,10 +27,15 @@ export default function Stop() {
         setDepartures([]);
 
 
-        (async () => {
-            setRoutes(await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/routes?stop_id=" + id));
-            setDepartures((await callAPI("https://api.opendata.metlink.org.nz/v1/stop-predictions?stop_id=" + id)).departures);
-        })();
+        callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/routes?stop_id=" + id).then(res => setRoutes(res));
+
+        const updateDepartures = async () => setDepartures((await callAPI("https://api.opendata.metlink.org.nz/v1/stop-predictions?stop_id=" + id)).departures);
+
+        updateDepartures()
+
+        const interval = setInterval(updateDepartures, 10000)
+
+        return () => clearInterval(interval);
     }, [id])
 
     const stop = stops[id]

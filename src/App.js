@@ -29,7 +29,10 @@ const drawerWidth = 500;
 export default function App() {
   const [stops, setStops] = React.useState({});
   const [map, setMap] = React.useState(null);
-  // const [buses, setBuses] = React.useState(null);
+  const [buses, setBuses] = React.useState([])
+  const [mapLoaded, setMapLoaded] = React.useState(false)
+  const [busFilter, setBusFilter] = React.useState(null)
+  const [busIconLoaded, setBusIconLoaded] = React.useState(false)
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -53,6 +56,14 @@ export default function App() {
 
   //   return () => clearInterval(interval);
   // })
+
+  React.useEffect(() => {
+    if (map) {
+      map.on("load", () => {
+        setMapLoaded(true);
+      })
+    }
+  }, [map])
 
   function setupMap(geoJSON) {
     map.addSource('earthquakes', {
@@ -184,10 +195,21 @@ export default function App() {
     map.on('mouseleave', 'unclustered-point', () => {
       map.getCanvas().style.cursor = '';
     });
+
+    map.loadImage(
+      '/location-arrow-solid.png',
+      (error, image) => {
+        if (error) throw error;
+
+        // Add the image to the map style.
+        map.addImage('location-arrow-solid', image);
+
+        setBusIconLoaded(true)
+      })
   }
 
   React.useEffect(() => {
-    if (map && stops && Object.keys(stops).length) {
+    if (mapLoaded && stops && Object.keys(stops).length) {
       // Construct geoJSON
       const geoJSON = {
         type: "FeatureCollection",
@@ -203,17 +225,11 @@ export default function App() {
             id: stop.stop_id,
           },
         }))
+
       };
 
-      console.log("GeoJSON:", geoJSON);
+      setupMap(geoJSON);
 
-      try {
-        setupMap(geoJSON);
-      } catch (e) {
-        map.on("load", () => {
-          setupMap(geoJSON);
-        });
-      }
       // map.addSource("stops", {
       //   type: "geojson",
       //   data: geoJSON,
@@ -231,7 +247,7 @@ export default function App() {
       //   },
       // });
     }
-  }, [map, stops]);
+  }, [mapLoaded, stops]);
   // for (const stop of Object.values(stops)) {
   //   const markerElement = document.createElement("img");
   //   markerElement.style.width = "13px"
@@ -255,76 +271,159 @@ export default function App() {
   // }
   // }, [stops, map]);
 
+  React.useEffect(() => {
+    console.log("Starting live bus data");
+    const updateBuses = async () => {
+      console.log("Updating buses...");
+      const data = await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs-rt/vehiclepositions")
+      setBuses(data.entity.map(a => a.vehicle).filter(busFilter || (() => true)));
+    }
+
+    updateBuses()
+
+    const interval = setInterval(updateBuses, 10000);
+
+    return () => clearInterval(interval);
+  }, [busFilter])
+
+  React.useEffect(() => {
+    if (busIconLoaded) {
+      const geoJSON = {
+        type: "FeatureCollection",
+        features: buses.map(bus => {
+          const {
+            latitude,
+            longitude,
+            bearing,
+          } = bus.position;
+
+          return {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+            },
+            properties: {
+              bearing: bearing + 315,
+            },
+          };
+        }),
+      };
+
+      try {
+        map?.addSource("buses", {
+          type: "geojson",
+          data: geoJSON,
+        });
+
+        try {
+          map?.addLayer({
+            id: "buses",
+            type: "symbol",
+            source: "buses",
+            layout: {
+              "icon-image": "location-arrow-solid",
+              "icon-allow-overlap": true,
+              'icon-rotate': ['get', 'bearing'],
+              // set size to 10px
+              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.8],
+            },
+          }, 'clusters');
+        } catch (e) {
+          map?.addLayer({
+            id: "buses",
+            type: "symbol",
+            source: "buses",
+            layout: {
+              "icon-image": "location-arrow-solid",
+              "icon-allow-overlap": true,
+              'icon-rotate': ['get', 'bearing'],
+              // set size to 10px
+              "icon-size": ['interpolate', ['linear'], ['zoom'], 10, 0.1, 25, 0.8],
+            },
+          });
+        }
+
+        return () => {
+          map?.removeLayer("buses");
+          map?.removeSource("buses");
+        };
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [buses, busIconLoaded]);
+
   return (
     <ThemeProvider theme={theme}>
       <StopsContext.Provider value={[stops, setStops]}>
         <MapContext.Provider value={[map, setMap]}>
-          {/* <BusContext.Provider value={[buses, setBuses]}> */}
-          <Box
-            sx={{
-              display: "flex",
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}
-          >
-            <CssBaseline />
-            <Drawer
-              sx={{
-                width: drawerWidth,
-                flexShrink: 0,
-                "& .MuiDrawer-paper": {
-                  width: drawerWidth,
-                  boxSizing: "border-box",
-                },
-              }}
-              variant="permanent"
-              anchor="left"
-            >
-              <Search />
-
-              <Routes />
-            </Drawer>
-
+          <BusContext.Provider value={[buses, setBuses, setBusFilter]}>
             <Box
-              component="main"
               sx={{
-                flexGrow: 1,
-                bgcolor: "background.default",
-                p: 3,
-                position: "relative",
-                height: "100%",
+                display: "flex",
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
               }}
             >
-              <React.Suspense
-                fallback={
-                  // div with text in middle
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      backgroundColor: "#78bced",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography variant="h5" style={{ color: "white" }}>
-                      Loading map...
-                    </Typography>
-                  </div>
-                }
+              <CssBaseline />
+              <Drawer
+                sx={{
+                  width: drawerWidth,
+                  flexShrink: 0,
+                  "& .MuiDrawer-paper": {
+                    width: drawerWidth,
+                    boxSizing: "border-box",
+                  },
+                }}
+                variant="permanent"
+                anchor="left"
               >
-                <Map />
-              </React.Suspense>
+                <Search />
+
+                <Routes />
+              </Drawer>
+
+              <Box
+                component="main"
+                sx={{
+                  flexGrow: 1,
+                  bgcolor: "background.default",
+                  p: 3,
+                  position: "relative",
+                  height: "100%",
+                }}
+              >
+                <React.Suspense
+                  fallback={
+                    // div with text in middle
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        backgroundColor: "#78bced",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography variant="h5" style={{ color: "white" }}>
+                        Loading map...
+                      </Typography>
+                    </div>
+                  }
+                >
+                  <Map />
+                </React.Suspense>
+              </Box>
             </Box>
-          </Box>
-          {/* </BusContext.Provider> */}
+          </BusContext.Provider>
         </MapContext.Provider>
       </StopsContext.Provider>
     </ThemeProvider>

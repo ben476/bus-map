@@ -28,6 +28,7 @@ export default function MapApp(props) {
         zoom: 12,
       });
       setMap(map);
+      window.map = map
 
       const attributionControl = new AttributionControl();
       map.addControl(attributionControl, "top-left");

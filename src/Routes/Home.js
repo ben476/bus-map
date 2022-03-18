@@ -10,69 +10,6 @@ import callAPI from "../callAPI";
 export default function Home() {
   const [map] = React.useContext(MapContext);
   // const [geoJSON, setGeoJSON] = React.useState(null)
-  const [buses, setBuses] = React.useState([])
-
-  React.useEffect(() => {
-    const updateBuses = async () => {
-      const data = await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs-rt/vehiclepositions")
-      setBuses(data.entity.map(a => a.vehicle));
-    }
-
-    updateBuses()
-
-    const interval = setInterval(updateBuses, 10000);
-
-    return () => clearInterval(interval);
-  }, [])
-
-  React.useEffect(() => {
-    try {
-      const geoJSON = {
-        type: "FeatureCollection",
-        features: buses.map(bus => {
-          const {
-            latitude,
-            longitude,
-            bearing,
-          } = bus.position;
-
-          return {
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [longitude, latitude],
-            },
-            properties: {
-              bearing: bearing + 90,
-            },
-          };
-        }),
-      };
-
-      map?.addSource("buses", {
-        type: "geojson",
-        data: geoJSON,
-      });
-
-      map?.addLayer({
-        id: "buses",
-        type: "symbol",
-        source: "buses",
-        layout: {
-          "icon-image": "rectangle-blue-3",
-          "icon-allow-overlap": true,
-          'icon-rotate': ['get', 'bearing']
-        },
-      }, "clusters");
-
-      return () => {
-        map?.removeLayer("buses");
-        map?.removeSource("buses");
-      };
-    } catch (e) {
-      console.error(e);
-    }
-  }, [buses, map]);
 
   return (
     <Fade in>
@@ -102,7 +39,7 @@ export default function Home() {
                 lineHeight: "1.4em",
               }}
             >
-              Benjamin Hong 300605520 COMP261 Assignment 1 Challenge Attempt
+              Benjamin Hong COMP261 Assignment 1 Challenge Attempt
             </Typography>
           </Box>
         </Box>
