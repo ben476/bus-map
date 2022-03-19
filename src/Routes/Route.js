@@ -17,7 +17,7 @@ import callAPI from '../callAPI';
 
 export default function Service(props) {
     const [stops] = React.useContext(StopsContext);
-    const [map] = React.useContext(MapContext);
+    const [map, , mapLoaded] = React.useContext(MapContext);
     const [time, setTime] = React.useState(new Date())
     const [geoJSON, setGeoJSON] = React.useState(null)
     const [trips, setTrips] = React.useState([])
@@ -43,10 +43,12 @@ export default function Service(props) {
     }, [])
 
     React.useEffect(() => {
-        setBusFilter(() => (a) => (a?.trip?.route_id == route?.route_id))
+        if (route) {
+            setBusFilter(() => (a) => (a.trip.route_id == route.route_id))
 
-        return () => setBusFilter(() => (a) => true)
-    }, [routeId])
+            return () => setBusFilter(() => (a) => true)
+        }
+    }, [route, setBusFilter])
 
     // React.useEffect(() => {
     //     map.setLayoutProperty("clusters", 'visibility', 'none');
@@ -72,13 +74,13 @@ export default function Service(props) {
     }, [route])
 
     React.useEffect(() => {
-        if (geoJSON && map) {
+        if (geoJSON && mapLoaded && map && route) {
             map.addSource('route#' + route.route_short_name, {
                 'type': 'geojson',
                 'data': geoJSON
             })
 
-            map.addLayer({
+            const layerOptions = {
                 'id': 'route#' + route.route_short_name,
                 'type': 'line',
                 'source': 'route#' + route.route_short_name,
@@ -90,14 +92,22 @@ export default function Service(props) {
                     'line-color': '#' + route.route_color,
                     'line-width': 6
                 }
-            }, 'buses');
+            }
+
+
+            try {
+                map.addLayer(layerOptions, "buses");
+            } catch (e) {
+                map.addLayer(layerOptions);
+            }
+
 
             return () => {
                 map.removeLayer('route#' + route.route_short_name)
                 map.removeSource('route#' + route.route_short_name)
             }
         }
-    }, [geoJSON, map])
+    }, [geoJSON, map, mapLoaded, route])
 
     if (!route) {
         return null

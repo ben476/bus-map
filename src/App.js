@@ -286,7 +286,7 @@ export default function App() {
     const updateBuses = async () => {
       console.log("Updating buses...");
       const data = await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs-rt/vehiclepositions")
-      setBuses(data.entity.map(a => a.vehicle).filter(busFilter || (() => true)));
+      setBuses(data.entity.map(a => a.vehicle));
     }
 
     updateBuses()
@@ -294,13 +294,14 @@ export default function App() {
     const interval = setInterval(updateBuses, 10000);
 
     return () => clearInterval(interval);
-  }, [busFilter])
+  }, [])
 
   React.useEffect(() => {
     if (busIconLoaded) {
+      console.log("bus filter", busFilter);
       const geoJSON = {
         type: "FeatureCollection",
-        features: buses.map(bus => {
+        features: buses.filter(busFilter || (() => true)).map(bus => {
           const {
             latitude,
             longitude,
@@ -375,7 +376,7 @@ export default function App() {
         console.error(e);
       }
     }
-  }, [buses, busIconLoaded]);
+  }, [buses, busIconLoaded, busFilter, activeBus]);
 
   React.useEffect(() => {
     if (busesLoaded) {

@@ -211,7 +211,7 @@ export default function MapApp(props) {
       // 	});
       // 	setMap(map);
       // }
-      map.on("error", onError);
+      // map.on("error", onError);
       map.on("load", onLoad);
 
       return () => {
