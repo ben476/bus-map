@@ -1,23 +1,22 @@
-import { Avatar, Fade } from '@mui/material';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import { Fade } from '@mui/material';
 import Box from '@mui/material/Box';
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from '@mui/material/Typography';
-import parse from 'parse-duration';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BusContext from '../BusContext';
-import MapContext from '../MapContext';
-import StopsContext from '../StopsContext';
-import RoutesContext from '../RoutesContext';
 import callAPI from '../callAPI';
+import MapContext from '../MapContext';
+import RoutesContext from '../RoutesContext';
+import StopsContext from '../StopsContext';
 
 export default function Service(props) {
     const [stops] = React.useContext(StopsContext);
     const [map, , mapLoaded] = React.useContext(MapContext);
-    const routes = React.useContext(RoutesContext);
+    const [routes] = React.useContext(RoutesContext);
     const [time, setTime] = React.useState(new Date())
     const [geoJSON, setGeoJSON] = React.useState(null)
     const [schedule, setSchedule] = React.useState([])
@@ -176,7 +175,7 @@ export default function Service(props) {
                         </Typography>
                         <Typography variant="body1" sx={{ marginTop: 1 }}>
                             {
-                                bus?.direction === "outbound" ? route.route_desc : route.route_long_name
+                                bus?.trip.direction_id ? route.route_long_name : route.route_desc
                             }
                             <br />
                             {"Bus ID: " + busId}

@@ -1,18 +1,17 @@
-import * as React from "react";
+import { createTheme, responsiveFontSizes, ThemeProvider } from "@mui/material";
 import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
+import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
-import { createTheme, ThemeProvider, responsiveFontSizes } from "@mui/material";
-import { Marker } from "mapbox-gl";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import Search from "./Search";
-import Routes from "./Routes";
-import StopsContext from "./StopsContext";
-import MapContext from "./MapContext";
 import BusContext from "./BusContext";
-import RoutesContext from "./RoutesContext";
 import callAPI from "./callAPI";
+import MapContext from "./MapContext";
+import Routes from "./Routes";
+import RoutesContext from "./RoutesContext";
+import Search from "./Search";
+import StopsContext from "./StopsContext";
 import useAPI from "./useAPI";
 
 const Map = React.lazy(() => import("./Map"));
@@ -414,7 +413,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <StopsContext.Provider value={[stops, setStops]}>
-        <RoutesContext.Provider value={routes}>
+        <RoutesContext.Provider value={[routes, routesList]}>
           <MapContext.Provider value={[map, setMap, mapLoaded]}>
             <BusContext.Provider value={[buses, setBuses, setBusFilter, setActiveBus]}>
               <Box

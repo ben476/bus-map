@@ -15,44 +15,101 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import styles from "./Search.module.css";
+import Fuse from 'fuse.js';
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, DepartureBoard } from "@mui/icons-material";
 import MapContext from "./MapContext";
+import StopsContext from "./StopsContext";
+import RoutesContext from "./RoutesContext";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiYmVuaG9uZyIsImEiOiJjbDB1dXU2YjkxMTFqM2pxbzk4azl6bnJjIn0.FB3GqcVZYnZqzs549LsjPg";
+
+const options = {
+  // isCaseSensitive: false,
+  includeScore: true,
+  // shouldSort: true,
+  // includeMatches: false,
+  // findAllMatches: false,
+  // minMatchCharLength: 1,
+  // location: 0,
+  threshold: 0.2,
+  // distance: 100,
+  // useExtendedSearch: false,
+  // ignoreLocation: false,
+  // ignoreFieldNorm: false,
+  keys: [
+    { name: "route_short_name", weight: 1.01 },
+    { name: "stop_id", weight: 1 },
+    { name: "route_long_name", weight: 0.5 },
+    { name: "stop_name", weight: 0.5 },
+  ]
+};
 
 // MapBox Search
 export default function SearchBar() {
   const [value, setValue] = React.useState("");
   const [results, setResults] = React.useState([]);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [fuse, setFuse] = React.useState(null);
   const [hasFocus, setHasFocus] = React.useState(false);
   const [map, setMap] = React.useContext(MapContext);
+  const [stops, setStops] = React.useContext(StopsContext);
+  const [routes] = React.useContext(RoutesContext);
+
   const [mouseOver, setMouseOver] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   React.useEffect(() => {
+    if (routes && stops) {
+      const searchValues = Object.values(stops).concat(Object.values(routes));
+
+      setFuse(new Fuse(searchValues, options));
+    }
+  }, [routes, stops]);
+
+  React.useEffect(() => {
     (async () => {
-      if (value) {
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          value
-        )}.json?country=nz&proximity=175%2C-41&types=postcode%2Cpoi%2Caddress%2Cregion%2Cplace&language=en&access_token=${MAPBOX_TOKEN}`;
-        const response = await fetch(url);
-        const json = await response.json();
-        if (json.features.length) {
-          setResults(json.features);
+      if (value && fuse) {
+        // const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        //   value
+        // )}.json?country=nz&proximity=175%2C-41&types=postcode%2Cpoi%2Caddress%2Cregion%2Cplace&language=en&access_token=${MAPBOX_TOKEN}`;
+        // const response = await fetch(url);
+        // const json = await response.json();
+
+        const results = fuse.search(value);
+
+        results.length = 8
+
+        console.log(results);
+
+        if (results.length) {
+          setResults(results);
           setHasFocus(true);
         } else {
           setHasFocus(false);
-          setTimeout(() => setResults(json.features), 200);
+          setTimeout(() => setResults(results), 200);
         }
       }
     })();
-  }, [value]);
+  }, [value, fuse]);
+
+  React.useEffect(() => {
+    // Get search query from url params. Example: ?search=123
+    const search = new URLSearchParams(location.search);
+    const searchQuery = search.get("search");
+    if (searchQuery) {
+      setValue(searchQuery);
+      setHasFocus(true);
+    }
+
+    // Remove search query from url params. Example: ?search=123
+    navigate(location.pathname);
+  }, [])
 
   function reset() {
     setHasFocus(false);
@@ -62,44 +119,13 @@ export default function SearchBar() {
     setSelectedIndex(0);
   }
 
-  function select(value) {
+  function select(result) {
     reset();
-    const searchParams = new URLSearchParams();
-    searchParams.set("name", value.text);
-    searchParams.set("center", JSON.stringify(value.center));
-    if (value.bbox) {
-      searchParams.set("bbox", JSON.stringify(value.bbox));
-    }
-
-    const zoomValues = {
-      postcode: 14,
-      place: 14,
-      poi: 16,
-      address: 16,
-      region: 12,
-    };
-
-    if (value.bbox) {
-      map?.fitBounds(value.bbox, {
-        // padding: {
-        //   top: 100,
-        //   bottom: 100,
-        //   left: 100,
-        //   right: 100
-        // },
-        speed: 0.8,
-        curve: 2,
-      });
+    if (result.stop_id) {
+      navigate(`/stop/${result.stop_id}`);
     } else {
-      map?.flyTo({
-        center: value.center,
-        zoom: zoomValues[value.place_type],
-        speed: 0.8,
-        curve: 2,
-      });
+      navigate(`/route/${result.route_short_name}`);
     }
-
-    // navigate("/search?" + searchParams.toString());
   }
 
   React.useEffect(() => {
@@ -240,7 +266,7 @@ export default function SearchBar() {
           <>
             <Divider />
             <List disablePadding dense className={styles.list}>
-              {results.map((result, i) => (
+              {results.map(({ item: result }, i) => (
                 <ListItem disableGutters>
                   <ListItemButton
                     selected={selectedIndex === i}
@@ -249,21 +275,20 @@ export default function SearchBar() {
                       select(result);
                     }}
                     style={{
-                      paddingLeft: 18,
+                      // paddingLeft: 18,
                     }}
                   >
                     <ListItemIcon>
-                      {["postcode", "address", "region", "place"].includes(
-                        result.place_type[0]
-                      ) ? (
-                        <LocationCityIcon />
+                      {result.route_id ? (
+                        <Avatar sx={{ bgcolor: "#" + result.route_color, marginLeft: -1, fontSize: 15 }}>{result.route_short_name}</Avatar>
                       ) : (
-                        <LocationOnIcon />
+                        <DepartureBoard style={{ marginLeft: 3 }} />
                       )}
                     </ListItemIcon>
                     <ListItemText
                       style={{ marginLeft: -16 }}
-                      primary={result.place_name}
+                      primary={result.route_long_name || result.stop_name}
+                      secondary={result.stop_id}
                     />
                   </ListItemButton>
                 </ListItem>
