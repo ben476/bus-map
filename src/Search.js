@@ -137,7 +137,7 @@ export default function SearchBar() {
         setSelectedIndex(Math.max(selectedIndex - 1, 0));
       }
       if (e.key === "Enter") {
-        select(results[selectedIndex]);
+        select(results[selectedIndex].item);
       }
     }
     window.addEventListener("keydown", handleKey);
