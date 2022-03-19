@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import parse from 'parse-duration';
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import getBounds from "geolib/es/getBounds";
 import BusContext from '../BusContext';
 import MapContext from '../MapContext';
 import StopsContext from '../StopsContext';
@@ -16,11 +17,10 @@ import RoutesContext from '../RoutesContext';
 import callAPI from '../callAPI';
 
 export default function Service(props) {
-    const [stops] = React.useContext(StopsContext);
+    // const [stops] = React.useContext(StopsContext);
     const [map, , mapLoaded] = React.useContext(MapContext);
     const [time, setTime] = React.useState(new Date())
     const [geoJSON, setGeoJSON] = React.useState(null)
-    const [trips, setTrips] = React.useState([])
     const [allBuses, , setBusFilter] = React.useContext(BusContext)
     const [, routes] = React.useContext(RoutesContext);
     const busMarkersRef = React.useRef([])
@@ -59,6 +59,18 @@ export default function Service(props) {
     React.useEffect(() => {
         (async () => {
             if (route?.route_short_name) {
+                const stops = await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/stops?route_id=" + route.route_id)
+
+                const bounds = getBounds(stops.map(s => ({ latitude: s.stop_lat, longitude: s.stop_lon })))
+
+                console.log("Bounds", bounds);
+
+                map?.fitBounds([[bounds.minLng, bounds.minLat], [bounds.maxLng, bounds.maxLat]], { padding: { top: 50, bottom: 50, left: 50, right: 50 } })
+            }
+        })();
+
+        (async () => {
+            if (route?.route_short_name) {
                 const req = await fetch("https://backend.metlink.org.nz/api/v1/routemap", {
                     "body": JSON.stringify({ service: "" + route.route_short_name }),
                     "method": "POST",
@@ -70,7 +82,7 @@ export default function Service(props) {
 
                 setGeoJSON(data.geojson)
             }
-        })()
+        })();
     }, [route])
 
     React.useEffect(() => {
