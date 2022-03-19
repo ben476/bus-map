@@ -65,7 +65,7 @@ export default function Service(props) {
     }, [])
 
     React.useEffect(() => {
-        if (geoJSON && mapLoaded) {
+        if (geoJSON && mapLoaded && map && route) {
             map.addSource('route#' + route.route_short_name, {
                 'type': 'geojson',
                 'data': geoJSON
@@ -87,7 +87,7 @@ export default function Service(props) {
 
 
             try {
-                map.addLayer(layerOptions, 'buses');
+                map.addLayer(layerOptions, "buses");
             } catch (e) {
                 map.addLayer(layerOptions);
             }
@@ -98,7 +98,7 @@ export default function Service(props) {
                 map.removeSource('route#' + route.route_short_name)
             }
         }
-    }, [geoJSON, mapLoaded])
+    }, [geoJSON, map, mapLoaded, route])
 
     if (!stop || !route) {
         return null
