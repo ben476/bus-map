@@ -45,8 +45,12 @@ export default function Service(props) {
 
     React.useEffect(() => {
         map.setLayoutProperty("clusters", 'visibility', 'none');
+        map.setLayoutProperty("cluster-count", 'visibility', 'none');
 
-        return () => map.setLayoutProperty("clusters", 'visibility', 'visible');
+        return () => {
+            map.setLayoutProperty("clusters", 'visibility', 'visible');
+            map.setLayoutProperty("cluster-count", 'visibility', 'visible');
+        }
     })
 
     React.useEffect(() => {
