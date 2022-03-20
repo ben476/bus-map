@@ -72,7 +72,7 @@ export default function Service(props) {
     }, [route])
 
     React.useEffect(() => {
-        if (bus) {
+        if (bus && schedule.length === 0) {
             (async () => {
                 setSchedule(await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/stop_times?trip_id=" + bus.trip.trip_id))
             })()
