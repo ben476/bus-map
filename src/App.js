@@ -397,7 +397,7 @@ export default function App() {
           curve: 1,
         });
 
-        setLastActiveBus(e.features[0].properties.id);
+        setLastActiveBus(null);
 
         navigate(`/bus/${e.features[0].properties.id}`);
       });

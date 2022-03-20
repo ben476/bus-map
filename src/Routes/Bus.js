@@ -72,7 +72,7 @@ export default function Service(props) {
     }, [route])
 
     React.useEffect(() => {
-        if (bus && schedule.length === 0) {
+        if (bus && (schedule.length === 0 ? true : schedule[0].trip_id !== bus.trip.trip_id)) {
             (async () => {
                 setSchedule(await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs/stop_times?trip_id=" + bus.trip.trip_id))
             })()
@@ -200,7 +200,7 @@ export default function Service(props) {
 
                         const date = new Date()
 
-                        const timeString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+                        const timeString = date.getHours().toString().padStart(2, '0') + ":" + date.getMinutes().toString().padStart(2, '0') + ":" + date.getSeconds().toString().padStart(2, '0')
 
                         // console.log(service.departure_time, timeString, service.departure_time > timeString)
 

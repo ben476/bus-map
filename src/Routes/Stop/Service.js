@@ -44,14 +44,14 @@ export default function Service(props) {
     }, [routeId])
 
     React.useEffect(() => {
-        map.setLayoutProperty("clusters", 'visibility', 'none');
-        map.setLayoutProperty("cluster-count", 'visibility', 'none');
+        map?.setLayoutProperty("clusters", 'visibility', 'none');
+        map?.setLayoutProperty("cluster-count", 'visibility', 'none');
 
         return () => {
-            map.setLayoutProperty("clusters", 'visibility', 'visible');
-            map.setLayoutProperty("cluster-count", 'visibility', 'visible');
+            map?.setLayoutProperty("clusters", 'visibility', 'visible');
+            map?.setLayoutProperty("cluster-count", 'visibility', 'visible');
         }
-    })
+    }, [map])
 
     React.useEffect(() => {
         (async () => {
@@ -163,6 +163,8 @@ export default function Service(props) {
                         const durationString = service.delay.substring(3).replace("PT", "").toLowerCase()
 
                         // console.log(durationString, parse(durationString), parse)
+
+                        console.log(service.trip_id)
 
                         return (new Date(service.arrival.expected || service.arrival.aimed) > time) && (
                             <ListItem
