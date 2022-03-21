@@ -25,7 +25,7 @@ export default function Stop(props) {
     React.useEffect(() => {
         map?.flyTo({
             center: [stop.stop_lon, stop.stop_lat],
-            zoom: 18,
+            zoom: 16,
             speed: 1.4,
             curve: 1,
         });
