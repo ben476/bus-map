@@ -1,20 +1,9 @@
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import StopsContext from '../../StopsContext';
 import React from 'react';
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import { Route, Router, Routes, useLocation, useParams } from 'react-router-dom';
-import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
-import { getDistance } from 'geolib';
-import { Avatar, Button, Fade } from '@mui/material';
+import { Route, Routes, useParams } from 'react-router-dom';
 import callAPI from '../../callAPI';
-import StopDetails from './StopDetails';
+import StopsContext from '../../StopsContext';
 import Service from './Service';
+import StopDetails from './StopDetails';
 
 export default function Stop() {
     const [stops] = React.useContext(StopsContext);

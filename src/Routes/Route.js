@@ -1,20 +1,17 @@
-import { Avatar, Fade } from '@mui/material';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import { Avatar, Fade, ListItemIcon } from '@mui/material';
 import Box from '@mui/material/Box';
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
-import { ListItemIcon } from '@mui/material';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import Typography from '@mui/material/Typography';
-import parse from 'parse-duration';
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import getBounds from "geolib/es/getBounds";
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import BusContext from '../BusContext';
-import MapContext from '../MapContext';
-import StopsContext from '../StopsContext';
-import RoutesContext from '../RoutesContext';
 import callAPI from '../callAPI';
+import MapContext from '../MapContext';
+import RoutesContext from '../RoutesContext';
 
 export default function Service(props) {
     // const [stops] = React.useContext(StopsContext);

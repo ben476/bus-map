@@ -17,17 +17,13 @@ export default function Service(props) {
     const [time, setTime] = React.useState(new Date())
     const [geoJSON, setGeoJSON] = React.useState(null)
     const [buses, , setBusFilter] = React.useContext(BusContext)
-    const busMarkersRef = React.useRef([])
 
-    // const [busGeoJSON, setBusGeoJSON] = React.useState(null)
     const { id: stopId, departures: allDepartures, routes } = props;
     const { routeId } = useParams();
 
     const stop = stops[stopId]
     const route = routes.find(r => r.route_short_name === routeId)
     const departures = allDepartures.filter(d => d.service_id === routeId)
-
-    // console.log("Service Details", stop);
 
     React.useEffect(() => {
         const interval = setInterval(() => {

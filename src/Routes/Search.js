@@ -1,19 +1,16 @@
+import { Fade } from "@mui/material";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import StopsContext from "../StopsContext";
-import React from "react";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { useSearchParams } from "react-router-dom";
+import Typography from "@mui/material/Typography";
 import { getDistance } from "geolib";
-import { Fade } from "@mui/material";
-import { useNavigate, useLocation } from "react-router-dom";
-import MapContext from "../MapContext";
+import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ServiceTip from "../components/ServiceTip";
+import MapContext from "../MapContext";
+import StopsContext from "../StopsContext";
 
 export default function Search() {
   const [stops] = React.useContext(StopsContext);

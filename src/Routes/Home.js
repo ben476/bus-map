@@ -1,11 +1,8 @@
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
 import Fade from "@mui/material/Fade";
-import ButtonBase from "@mui/material/ButtonBase";
+import Typography from "@mui/material/Typography";
 import React from "react";
 import MapContext from "../MapContext";
-import callAPI from "../callAPI";
 
 export default function Home() {
   const [map] = React.useContext(MapContext);

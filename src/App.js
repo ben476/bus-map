@@ -145,6 +145,8 @@ export default function App() {
 
     // inspect a cluster on click
     map.on('click', 'clusters', (e) => {
+      e.originalEvent.cancelBubble = true;
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['clusters']
       });
@@ -154,9 +156,10 @@ export default function App() {
         (err, zoom) => {
           if (err) return;
 
-          map.easeTo({
+          map.flyTo({
             center: features[0].geometry.coordinates,
-            zoom: zoom
+            zoom: zoom + 0.8,
+            duration: 1000
           });
         }
       );
@@ -167,6 +170,8 @@ export default function App() {
     // the location of the feature, with
     // description HTML from its properties.
     map.on('click', 'unclustered-point', (e) => {
+      e.originalEvent.cancelBubble = true;
+
       const coordinates = e.features[0].geometry.coordinates.slice();
 
       // Ensure that if the map is zoomed out such that
@@ -240,22 +245,6 @@ export default function App() {
 
       setupMap(geoJSON);
 
-      // map.addSource("stops", {
-      //   type: "geojson",
-      //   data: geoJSON,
-      //   cluster: true,
-      //   clusterMaxZoom: 14, // Max zoom to cluster points on
-      //   clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
-      // });
-      // map.addLayer({
-      //   id: "stops",
-      //   type: "symbol",
-      //   source: "stops",
-      //   layout: {
-      //     "icon-image": "bus-15",
-      //     "icon-allow-overlap": true,
-      //   },
-      // });
     }
   }, [mapLoaded, stops]);
   // for (const stop of Object.values(stops)) {
@@ -381,6 +370,10 @@ export default function App() {
   React.useEffect(() => {
     if (busesLoaded) {
       map.on('click', 'buses', (e) => {
+        if (e.originalEvent.cancelBubble) {
+          return;
+        }
+
         const coordinates = e.features[0].geometry.coordinates.slice();
 
         // Ensure that if the map is zoomed out such that

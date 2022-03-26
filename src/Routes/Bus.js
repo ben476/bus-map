@@ -21,7 +21,6 @@ export default function Service(props) {
     const [geoJSON, setGeoJSON] = React.useState(null)
     const [schedule, setSchedule] = React.useState([])
     const [buses, , setBusFilter, setActiveBus] = React.useContext(BusContext)
-    const busMarkersRef = React.useRef([])
     const navigate = useNavigate();
 
     // const [busGeoJSON, setBusGeoJSON] = React.useState(null)
