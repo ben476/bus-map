@@ -47,12 +47,6 @@ export default function Service(props) {
         }
     }, [route, setBusFilter])
 
-    // React.useEffect(() => {
-    //     map.setLayoutProperty("clusters", 'visibility', 'none');
-
-    //     return () => map.setLayoutProperty("clusters", 'visibility', 'visible');
-    // })
-
     React.useEffect(() => {
         (async () => {
             if (route?.route_short_name) {

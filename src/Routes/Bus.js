@@ -23,16 +23,12 @@ export default function Service(props) {
     const [buses, , setBusFilter, setActiveBus] = React.useContext(BusContext)
     const navigate = useNavigate();
 
-    // const [busGeoJSON, setBusGeoJSON] = React.useState(null)
-
     const { busId } = useParams();
 
     const bus = buses.find(b => b.vehicle.id === busId);
     const route = routes[bus?.trip?.route_id]
 
     console.log("Bus details", busId, bus, route)
-
-    // console.log("Service Details", stop);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -46,12 +42,6 @@ export default function Service(props) {
         setActiveBus(busId)
         return () => setActiveBus(null)
     }, [busId])
-
-    // React.useEffect(() => {
-    //     setBusFilter(() => (a) => (a?.vehicle?.id == busId))
-
-    //     return () => setBusFilter(null)
-    // }, [busId])
 
     React.useEffect(() => {
         if (route) {
@@ -186,22 +176,11 @@ export default function Service(props) {
                 </Typography>
                 <List>
                     {schedule.map((service) => {
-                        // if (new Date(service.departure_time) < time) return null;
-
-                        // const state = service.delay.charAt(0) === "-" ? "late" : "early"
-
-                        // const durationString = service.delay.substring(3).replace("PT", "").toLowerCase()
-
-                        // console.log(durationString, parse(durationString), parse)
-
-                        // return (new Date(service.arrival.expected || service.arrival.aimed) > time) && (
                         const stop = stops[service.stop_id]
 
                         const date = new Date()
 
                         const timeString = date.getHours().toString().padStart(2, '0') + ":" + date.getMinutes().toString().padStart(2, '0') + ":" + date.getSeconds().toString().padStart(2, '0')
-
-                        // console.log(service.departure_time, timeString, service.departure_time > timeString)
 
                         if (service.departure_time < timeString || !stop) {
                             return null

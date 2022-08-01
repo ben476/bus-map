@@ -158,8 +158,6 @@ export default function Service(props) {
 
                         const durationString = service.delay.substring(3).replace("PT", "").toLowerCase()
 
-                        // console.log(durationString, parse(durationString), parse)
-
                         console.log(service.trip_id)
 
                         return (new Date(service.arrival.expected || service.arrival.aimed) > time) && (

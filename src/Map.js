@@ -57,58 +57,6 @@ export default function MapApp(props) {
       }
 
       function onLoad() {
-        // Insert the layer beneath any symbol layer.
-        // map.addSource('composite', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v7' });
-
-        // The 'building' layer in the Mapbox Streets
-        // vector tileset contains building height data
-        // from OpenStreetMap.
-        // map.addLayer(
-        // 	{
-        // 		'id': 'buildings',
-        // 		'source': 'composite',
-        // 		'source-layer': 'building',
-        // 		'filter': ['==', 'extrude', 'true'],
-        // 		'type': 'fill-extrusion',
-        // 		'minzoom': 15,
-        // 		'paint': {
-        // 			'fill-extrusion-color': '#aaa',
-
-        // 			// Use an 'interpolate' expression to
-        // 			// add a smooth transition effect to
-        // 			// the buildings as the user zooms in.
-        // 			'fill-extrusion-height': [
-        // 				'interpolate',
-        // 				['linear'],
-        // 				['zoom'],
-        // 				15,
-        // 				0,
-        // 				15.05,
-        // 				['get', 'height']
-        // 			],
-        // 			'fill-extrusion-base': [
-        // 				'interpolate',
-        // 				['linear'],
-        // 				['zoom'],
-        // 				15,
-        // 				0,
-        // 				15.05,
-        // 				['get', 'min_height']
-        // 			],
-        // 			'fill-extrusion-opacity': 0.6
-        // 		}
-        // 	},
-        // );
-
-        // map.addSource('mapbox-dem', {
-        // 	'type': 'raster-dem',
-        // 	'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        // 	'tileSize': 512,
-        // 	'maxzoom': 14
-        // });
-        // // add the DEM source as a terrain layer with exaggerated height
-        // map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-
         function getSunPosition() {
           const center = map.getCenter();
           const sunPos = SunCalc.getPosition(
@@ -145,73 +93,6 @@ export default function MapApp(props) {
         });
       }
 
-      // function onLoad() {
-      // 	map.addSource("geonet-source", {
-      // 		type: "vector",
-      // 		url: "mapbox://zadeviggers.ckyti0ozu2wkk20rvo89kd6ur-6jsd8",
-      // 	});
-      // 	map.addLayer({
-      // 		id: "geonet-layer",
-      // 		type: "symbol",
-      // 		source: "geonet-source",
-      // 		"source-layer": "stations",
-      // 		layout: {
-      // 			visibility: "none",
-      // 			"text-field": ["get", "Name"],
-      // 			"text-size": 12,
-      // 			"icon-image": ["image", "border-dot-13"],
-      // 		},
-      // 		paint: {
-      // 			"text-color": theme.palette.text.primary,
-      // 			"text-halo-width": 1,
-      // 			"text-halo-color": "#ffffff",
-      // 			"icon-color": theme.palette.secondary.main,
-      // 		},
-      // 	});
-      // 	// Fault lines
-      // 	map.addSource("fault-lines-source", {
-      // 		type: "vector",
-      // 		url: "mapbox://zadeviggers.8hjwpez9",
-      // 	});
-      // 	map.addLayer({
-      // 		id: "fault-lines-layer",
-      // 		type: "line",
-      // 		source: "fault-lines-source",
-      // 		"source-layer": "New_Zealand_Active_Faults_Database_1250k",
-      // 		layout: {
-      // 			// Make the layer visible by default.
-      // 			visibility: "visible",
-      // 			"line-join": "round",
-      // 			"line-cap": "round",
-      // 		},
-      // 		paint: {
-      // 			"line-color": theme.palette.error.main,
-      // 		},
-      // 	});
-      // 	map.addLayer({
-      // 		id: "fault-lines-labels-layer",
-      // 		type: "symbol",
-      // 		source: "fault-lines-source",
-      // 		"source-layer": "New_Zealand_Active_Faults_Database_1250k",
-      // 		layout: {
-      // 			visibility: "visible",
-      // 			"text-field": ["get", "Name"],
-      // 			"text-size": 12,
-      // 			"symbol-placement": "line-center",
-      // 		},
-      // 		paint: {
-      // 			"text-color": theme.palette.text.primary,
-      // 			"text-halo-width": 1,
-      // 			"text-halo-color": "#ffffff",
-      // 			// Other theme - try out later
-      // 			// "text-color": theme.palette.error.main,
-      // 			// "text-halo-width": 1,
-      // 			// "text-halo-color": "#000000",
-      // 		},
-      // 	});
-      // 	setMap(map);
-      // }
-      // map.on("error", onError);
       map.on("load", onLoad);
 
       return () => {

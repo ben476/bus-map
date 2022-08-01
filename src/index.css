@@ -26,20 +26,3 @@ code {
   opacity: 1;
   transition: opacity 250ms ease-in;
 }
-
-.crisislab-stop-marker {
-  width: 15px;
-  height: 15px;
-  /* border: 2px solid black; */
-  border-radius: 4px;
-  cursor: pointer !important;
-  background-color: #5ecaeb;
-  border: 2px solid black;
-}
-
-.crisislab-stop-marker.online {
-  background-color: #157f1f;
-}
-.crisislab-stop-marker.offline {
-  background-color: #d00000;
-}

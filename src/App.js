@@ -58,15 +58,6 @@ export default function App() {
     })();
   }, []);
 
-  // React.useEffect(() => {
-  //   const interval = setInterval(async () => {
-  //     const data = await callAPI("https://api.opendata.metlink.org.nz/v1/gtfs-rt/vehiclepositions")
-  //     setBuses(data);
-  //   }, 5000);
-
-  //   return () => clearInterval(interval);
-  // })
-
   React.useEffect(() => {
     if (map) {
       map.on("load", () => {
@@ -78,12 +69,10 @@ export default function App() {
   function setupMap(geoJSON) {
     map.addSource('earthquakes', {
       type: 'geojson',
-      // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-      // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
       data: geoJSON,
       cluster: true,
-      clusterMaxZoom: 14, // Max zoom to cluster points on
-      clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+      clusterMaxZoom: 14,
+      clusterRadius: 50
     });
 
     map.addLayer({
@@ -181,20 +170,7 @@ export default function App() {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
       }
 
-      // map?.flyTo({
-      //   center: [e.lngLat.lng, e.lngLat.lat],
-      //   zoom: 18,
-      //   speed: 1.4,
-      //   curve: 1,
-      // });
       navigate(`/stop/${e.features[0].properties.id}`);
-
-      // new mapboxgl.Popup()
-      //   .setLngLat(coordinates)
-      //   .setHTML(
-      //     `magnitude: ${mag}<br>Was there a tsunami?: ${tsunami}`
-      //   )
-      //   .addTo(map);
     });
 
     map.on('mouseenter', 'clusters', () => {
@@ -247,28 +223,6 @@ export default function App() {
 
     }
   }, [mapLoaded, stops]);
-  // for (const stop of Object.values(stops)) {
-  //   const markerElement = document.createElement("img");
-  //   markerElement.style.width = "13px"
-  //   markerElement.src = "https://www.google.com/maps/vt/icon/name=assets/icons/transit/quantum_v2/transit-container-outline-0-tiny.png,assets/icons/transit/quantum_v2/transit-container-0-tiny.png,assets/icons/transit/quantum_v2/bus-0-tiny.png&highlight=1967d2,1a73e8,ffffff?scale=2"
-  //   markerElement.onclick = () => {
-  //     map?.flyTo({
-  //       center: [stop.stop_lon, stop.stop_lat],
-  //       zoom: 16,
-  //       speed: 1.4,
-  //       curve: 1,
-  //     });
-  //     navigate(`/stop/${stop.id}`);
-  //   };
-
-  //   let marker = new Marker({
-  //     element: markerElement,
-  //     anchor: "bottom",
-  //   });
-  //   marker.setLngLat([stop.stop_lon, stop.stop_lat]);
-  //   marker.addTo(map);
-  // }
-  // }, [stops, map]);
 
   React.useEffect(() => {
     console.log("Starting live bus data");
